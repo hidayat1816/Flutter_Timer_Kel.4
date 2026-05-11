@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_timer/ticker.dart';
 import 'package:flutter_timer/timer/bloc/timer_bloc.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TimerPage extends StatelessWidget {
   const TimerPage({Key? key}) : super(key: key);
@@ -24,7 +25,33 @@ class TimerView extends StatefulWidget {
 }
 
 class _TimerViewState extends State<TimerView> {
-  final List<String> history = [];
+  List<String> history = [];
+
+  bool isDarkMode = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadHistory();
+  }
+
+  Future<void> saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setStringList(
+      'timer_history',
+      history,
+    );
+  }
+
+  Future<void> loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      history =
+          prefs.getStringList('timer_history') ?? [];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +67,53 @@ class _TimerViewState extends State<TimerView> {
             letterSpacing: 2,
           ),
         ),
+
+        actions: [
+  IconButton(
+    onPressed: () {
+      setState(() {
+        isDarkMode = !isDarkMode;
+      });
+    },
+    icon: Icon(
+      isDarkMode
+          ? Icons.light_mode
+          : Icons.dark_mode,
+      color: Colors.white,
+    ),
+  ),
+],
       ),
       body: Stack(
         children: [
-          const Background(),
+          Background(isDarkMode: isDarkMode),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40.0),
-                child: Center(
-                  child: CircularProgress(),
-                ),
-              ),
+              Padding(
+  padding: const EdgeInsets.symmetric(
+    vertical: 40.0,
+  ),
+  child: Center(
+    child: Container(
+      padding: const EdgeInsets.all(25),
+
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+
+        borderRadius:
+            BorderRadius.circular(30),
+
+        border: Border.all(
+          color: Colors.white24,
+        ),
+      ),
+
+      child: const CircularProgress(),
+    ),
+  ),
+),
 
               Actions(
                 onSave: () {
@@ -80,19 +140,95 @@ class _TimerViewState extends State<TimerView> {
                       '$minutes:$seconds:$milliseconds',
                     );
                   });
+
+                  saveHistory();
                 },
               ),
 
               const SizedBox(height: 40),
 
-              const Text(
-                'HISTORY',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
+              Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'HISTORY',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+
+                  const SizedBox(width: 15),
+
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            backgroundColor:
+                                const Color(0xFF203A43),
+                            title: const Text(
+                              'Delete History',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                            content: const Text(
+                              'Are you sure you want to delete all history?',
+                              style: TextStyle(
+                                color: Colors.white70,
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(
+                                    context,
+                                  );
+                                },
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    history.clear();
+                                  });
+
+                                  saveHistory();
+
+                                  Navigator.pop(
+                                    context,
+                                  );
+                                },
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    color:
+                                        Colors.redAccent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 15),
@@ -102,7 +238,8 @@ class _TimerViewState extends State<TimerView> {
                   itemCount: history.length,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(
+                      padding:
+                          const EdgeInsets.symmetric(
                         vertical: 5,
                       ),
                       child: Text(
@@ -165,9 +302,10 @@ class TimerText extends StatelessWidget {
         .toString()
         .padLeft(2, '0');
 
-    final millisecondsStr = ((duration * 100) % 100)
-        .toString()
-        .padLeft(2, '0');
+    final millisecondsStr =
+        ((duration * 100) % 100)
+            .toString()
+            .padLeft(2, '0');
 
     return Text(
       '$minutesStr:$secondsStr:$millisecondsStr',
@@ -203,7 +341,8 @@ class Actions extends StatelessWidget {
           prev.runtimeType != state.runtimeType,
       builder: (context, state) {
         return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
             ...switch (state) {
               TimerInitial() => [
@@ -211,10 +350,16 @@ class Actions extends StatelessWidget {
                   heroTag: null,
                   elevation: 8,
                   backgroundColor: Colors.green,
-                  child: const Icon(Icons.play_arrow),
-                  onPressed: () => context.read<TimerBloc>().add(
-                    TimerStarted(duration: state.duration),
-                  ),
+                  child:
+                      const Icon(Icons.play_arrow),
+                  onPressed: () => context
+                      .read<TimerBloc>()
+                      .add(
+                        TimerStarted(
+                          duration:
+                              state.duration,
+                        ),
+                      ),
                 ),
               ],
 
@@ -226,7 +371,9 @@ class Actions extends StatelessWidget {
                   child: const Icon(Icons.pause),
                   onPressed: () => context
                       .read<TimerBloc>()
-                      .add(const TimerPaused()),
+                      .add(
+                        const TimerPaused(),
+                      ),
                 ),
 
                 const SizedBox(width: 25),
@@ -248,7 +395,9 @@ class Actions extends StatelessWidget {
                   child: const Icon(Icons.replay),
                   onPressed: () => context
                       .read<TimerBloc>()
-                      .add(const TimerReset()),
+                      .add(
+                        const TimerReset(),
+                      ),
                 ),
               ],
 
@@ -257,10 +406,13 @@ class Actions extends StatelessWidget {
                   heroTag: null,
                   elevation: 8,
                   backgroundColor: Colors.green,
-                  child: const Icon(Icons.play_arrow),
+                  child:
+                      const Icon(Icons.play_arrow),
                   onPressed: () => context
                       .read<TimerBloc>()
-                      .add(const TimerResumed()),
+                      .add(
+                        const TimerResumed(),
+                      ),
                 ),
 
                 const SizedBox(width: 25),
@@ -282,7 +434,9 @@ class Actions extends StatelessWidget {
                   child: const Icon(Icons.replay),
                   onPressed: () => context
                       .read<TimerBloc>()
-                      .add(const TimerReset()),
+                      .add(
+                        const TimerReset(),
+                      ),
                 ),
               ],
 
@@ -294,7 +448,9 @@ class Actions extends StatelessWidget {
                   child: const Icon(Icons.replay),
                   onPressed: () => context
                       .read<TimerBloc>()
-                      .add(const TimerReset()),
+                      .add(
+                        const TimerReset(),
+                      ),
                 ),
               ],
             },
@@ -306,20 +462,30 @@ class Actions extends StatelessWidget {
 }
 
 class Background extends StatelessWidget {
-  const Background({Key? key}) : super(key: key);
+  final bool isDarkMode;
+
+  const Background({
+    Key? key,
+    required this.isDarkMode,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF0F2027),
-            Color(0xFF203A43),
-            Color(0xFF2C5364),
-          ],
+         colors: isDarkMode
+    ? [
+        const Color(0xFF0F2027),
+        const Color(0xFF203A43),
+        const Color(0xFF2C5364),
+      ]
+    : [
+        const Color(0xFFF5F7FA),
+        const Color(0xFFC3CFE2),
+      ],
         ),
       ),
     );
