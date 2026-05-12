@@ -91,6 +91,7 @@ class _TimerViewState extends State<TimerView> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
+              
               Padding(
   padding: const EdgeInsets.symmetric(
     vertical: 40.0,
@@ -100,14 +101,18 @@ class _TimerViewState extends State<TimerView> {
       padding: const EdgeInsets.all(25),
 
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+  color: isDarkMode
+      ? Colors.white.withOpacity(0.08)
+      : Colors.white.withOpacity(0.9),
 
         borderRadius:
             BorderRadius.circular(30),
 
         border: Border.all(
-          color: Colors.white24,
-        ),
+  color: isDarkMode
+      ? Colors.white24
+      : Colors.black12,
+),
       ),
 
       child: const CircularProgress(),
