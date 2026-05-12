@@ -19,7 +19,9 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
   }
 
   final Ticker _ticker;
-  static const int _duration = 60;
+
+  // START DARI 0
+  static const int _duration = 0;
 
   StreamSubscription<int>? _tickerSubscription;
 
@@ -29,38 +31,61 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     return super.close();
   }
 
-  void _onStarted(TimerStarted event, Emitter<TimerState> emit) {
+  void _onStarted(
+    TimerStarted event,
+    Emitter<TimerState> emit,
+  ) {
     emit(TimerRunInProgress(event.duration));
+
     _tickerSubscription?.cancel();
+
+    // TIMER NAIK TERUS
     _tickerSubscription = _ticker
-        .tick(ticks: event.duration)
-        .listen((duration) => add(_TimerTicked(duration: duration)));
+        .tick()
+        .listen(
+          (duration) =>
+              add(_TimerTicked(duration: duration)),
+        );
   }
 
-  void _onPaused(TimerPaused event, Emitter<TimerState> emit) {
+  void _onPaused(
+    TimerPaused event,
+    Emitter<TimerState> emit,
+  ) {
     if (state is TimerRunInProgress) {
       _tickerSubscription?.pause();
+
       emit(TimerRunPause(state.duration));
     }
   }
 
-  void _onResumed(TimerResumed resume, Emitter<TimerState> emit) {
+  void _onResumed(
+    TimerResumed resume,
+    Emitter<TimerState> emit,
+  ) {
     if (state is TimerRunPause) {
       _tickerSubscription?.resume();
+
       emit(TimerRunInProgress(state.duration));
     }
   }
 
-  void _onReset(TimerReset event, Emitter<TimerState> emit) {
+  void _onReset(
+    TimerReset event,
+    Emitter<TimerState> emit,
+  ) {
     _tickerSubscription?.cancel();
+
     emit(const TimerInitial(_duration));
   }
 
-  void _onTicked(_TimerTicked event, Emitter<TimerState> emit) {
+  // STOPWATCH SELALU BERTAMBAH
+  void _onTicked(
+    _TimerTicked event,
+    Emitter<TimerState> emit,
+  ) {
     emit(
-      event.duration > 0
-          ? TimerRunInProgress(event.duration)
-          : const TimerRunComplete(),
+      TimerRunInProgress(event.duration),
     );
   }
-}
+} 
