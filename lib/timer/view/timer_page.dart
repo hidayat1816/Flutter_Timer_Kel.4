@@ -38,18 +38,14 @@ class _TimerViewState extends State<TimerView> {
   Future<void> saveHistory() async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setStringList(
-      'timer_history',
-      history,
-    );
+    await prefs.setStringList('timer_history', history);
   }
 
   Future<void> loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      history =
-          prefs.getStringList('timer_history') ?? [];
+      history = prefs.getStringList('timer_history') ?? [];
     });
   }
 
@@ -57,32 +53,30 @@ class _TimerViewState extends State<TimerView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'STOPWATCH',
           style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
             letterSpacing: 2,
           ),
         ),
-
         actions: [
-  IconButton(
-    onPressed: () {
-      setState(() {
-        isDarkMode = !isDarkMode;
-      });
-    },
-    icon: Icon(
-      isDarkMode
-          ? Icons.light_mode
-          : Icons.dark_mode,
-      color: Colors.white,
-    ),
-  ),
-],
+          IconButton(
+            onPressed: () {
+              setState(() {
+                isDarkMode = !isDarkMode;
+              });
+            },
+            icon: Icon(
+              isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: isDarkMode ? Colors.white : Colors.black87,
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -91,59 +85,50 @@ class _TimerViewState extends State<TimerView> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              
               Padding(
-  padding: const EdgeInsets.symmetric(
-    vertical: 40.0,
-  ),
-  child: Center(
-    child: Container(
-      padding: const EdgeInsets.all(25),
-
-      decoration: BoxDecoration(
-  color: isDarkMode
-      ? Colors.white.withOpacity(0.08)
-      : Colors.white.withOpacity(0.9),
-
-        borderRadius:
-            BorderRadius.circular(30),
-
-        border: Border.all(
-  color: isDarkMode
-      ? Colors.white24
-      : Colors.black12,
-),
-      ),
-
-      child: const CircularProgress(),
-    ),
-  ),
-),
+                padding: const EdgeInsets.symmetric(vertical: 40.0),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(25),
+                    decoration: BoxDecoration(
+                      color: isDarkMode
+                          ? Colors.white.withOpacity(0.08)
+                          : Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: isDarkMode ? Colors.white24 : Colors.black12,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 25,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const CircularProgress(),
+                  ),
+                ),
+              ),
 
               Actions(
                 onSave: () {
-                  final duration =
-                      context.read<TimerBloc>().state.duration;
+                  final duration = context.read<TimerBloc>().state.duration;
 
-                  final minutes =
-                      ((duration ~/ 60) % 60)
-                          .toString()
-                          .padLeft(2, '0');
+                  final minutes = ((duration ~/ 60) % 60).toString().padLeft(
+                    2,
+                    '0',
+                  );
 
-                  final seconds =
-                      (duration % 60)
-                          .toString()
-                          .padLeft(2, '0');
+                  final seconds = (duration % 60).toString().padLeft(2, '0');
 
-                  final milliseconds =
-                      ((duration * 100) % 100)
-                          .toString()
-                          .padLeft(2, '0');
+                  final milliseconds = ((duration * 100) % 100)
+                      .toString()
+                      .padLeft(2, '0');
 
                   setState(() {
-                    history.add(
-                      '$minutes:$seconds:$milliseconds',
-                    );
+                    history.add('$minutes:$seconds:$milliseconds');
                   });
 
                   saveHistory();
@@ -153,13 +138,12 @@ class _TimerViewState extends State<TimerView> {
               const SizedBox(height: 40),
 
               Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'HISTORY',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isDarkMode ? Colors.white : Colors.black87,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
@@ -174,35 +158,35 @@ class _TimerViewState extends State<TimerView> {
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            backgroundColor:
-                                const Color(0xFF203A43),
-                            title: const Text(
+                            backgroundColor: isDarkMode
+                                ? const Color(0xFF203A43)
+                                : Colors.white,
+                            title: Text(
                               'Delete History',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                             ),
-                            content: const Text(
+                            content: Text(
                               'Are you sure you want to delete all history?',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black54,
                               ),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () {
-                                  Navigator.pop(
-                                    context,
-                                  );
+                                  Navigator.pop(context);
                                 },
                                 child: const Text(
                                   'Cancel',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                  ),
+                                  style: TextStyle(color: Colors.grey),
                                 ),
                               ),
-
                               TextButton(
                                 onPressed: () {
                                   setState(() {
@@ -211,16 +195,11 @@ class _TimerViewState extends State<TimerView> {
 
                                   saveHistory();
 
-                                  Navigator.pop(
-                                    context,
-                                  );
+                                  Navigator.pop(context);
                                 },
                                 child: const Text(
                                   'Delete',
-                                  style: TextStyle(
-                                    color:
-                                        Colors.redAccent,
-                                  ),
+                                  style: TextStyle(color: Colors.redAccent),
                                 ),
                               ),
                             ],
@@ -228,10 +207,7 @@ class _TimerViewState extends State<TimerView> {
                         },
                       );
                     },
-                    icon: const Icon(
-                      Icons.delete,
-                      color: Colors.redAccent,
-                    ),
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
                   ),
                 ],
               ),
@@ -243,15 +219,12 @@ class _TimerViewState extends State<TimerView> {
                   itemCount: history.length,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding:
-                          const EdgeInsets.symmetric(
-                        vertical: 5,
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Text(
                         history[index],
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white70 : Colors.black87,
                           fontSize: 18,
                         ),
                       ),
@@ -272,9 +245,7 @@ class CircularProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = context.select(
-      (TimerBloc bloc) => bloc.state.duration,
-    );
+    final duration = context.select((TimerBloc bloc) => bloc.state.duration);
 
     return CircularPercentIndicator(
       radius: 140.0,
@@ -284,7 +255,9 @@ class CircularProgress extends StatelessWidget {
       animateFromLastPercent: true,
       circularStrokeCap: CircularStrokeCap.round,
       progressColor: Colors.greenAccent,
-      backgroundColor: Colors.white12,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.white12
+          : Colors.black12,
       center: const TimerText(),
     );
   }
@@ -295,37 +268,23 @@ class TimerText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = context.select(
-      (TimerBloc bloc) => bloc.state.duration,
-    );
+    final duration = context.select((TimerBloc bloc) => bloc.state.duration);
 
-    final minutesStr = ((duration ~/ 60) % 60)
-        .toString()
-        .padLeft(2, '0');
+    final minutesStr = ((duration ~/ 60) % 60).toString().padLeft(2, '0');
 
-    final secondsStr = (duration % 60)
-        .toString()
-        .padLeft(2, '0');
+    final secondsStr = (duration % 60).toString().padLeft(2, '0');
 
-    final millisecondsStr =
-        ((duration * 100) % 100)
-            .toString()
-            .padLeft(2, '0');
+    final millisecondsStr = ((duration * 100) % 100).toString().padLeft(2, '0');
 
     return Text(
       '$minutesStr:$secondsStr:$millisecondsStr',
-      style: const TextStyle(
-        fontSize: 60,
+      style: TextStyle(
+        fontSize: 42,
         fontWeight: FontWeight.bold,
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.black87,
         letterSpacing: 4,
-        shadows: [
-          Shadow(
-            blurRadius: 20,
-            color: Colors.greenAccent,
-            offset: Offset(0, 0),
-          ),
-        ],
       ),
     );
   }
@@ -334,58 +293,45 @@ class TimerText extends StatelessWidget {
 class Actions extends StatelessWidget {
   final VoidCallback onSave;
 
-  const Actions({
-    super.key,
-    required this.onSave,
-  });
+  const Actions({super.key, required this.onSave});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TimerBloc, TimerState>(
-      buildWhen: (prev, state) =>
-          prev.runtimeType != state.runtimeType,
+      buildWhen: (prev, state) => prev.runtimeType != state.runtimeType,
       builder: (context, state) {
         return Row(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ...switch (state) {
               TimerInitial() => [
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
+
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   backgroundColor: Colors.green,
-                  child:
-                      const Icon(Icons.play_arrow),
-                  onPressed: () => context
-                      .read<TimerBloc>()
-                      .add(
-                        TimerStarted(
-                          duration:
-                              state.duration,
-                        ),
-                      ),
+                  child: const Icon(Icons.play_arrow),
+                  onPressed: () => context.read<TimerBloc>().add(
+                    TimerStarted(duration: state.duration),
+                  ),
                 ),
               ],
 
               TimerRunInProgress() => [
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.orange,
                   child: const Icon(Icons.pause),
-                  onPressed: () => context
-                      .read<TimerBloc>()
-                      .add(
-                        const TimerPaused(),
-                      ),
+                  onPressed: () =>
+                      context.read<TimerBloc>().add(const TimerPaused()),
                 ),
 
                 const SizedBox(width: 25),
 
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.blue,
                   child: const Icon(Icons.save),
                   onPressed: onSave,
@@ -395,36 +341,26 @@ class Actions extends StatelessWidget {
 
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.red,
                   child: const Icon(Icons.replay),
-                  onPressed: () => context
-                      .read<TimerBloc>()
-                      .add(
-                        const TimerReset(),
-                      ),
+                  onPressed: () =>
+                      context.read<TimerBloc>().add(const TimerReset()),
                 ),
               ],
 
               TimerRunPause() => [
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.green,
-                  child:
-                      const Icon(Icons.play_arrow),
-                  onPressed: () => context
-                      .read<TimerBloc>()
-                      .add(
-                        const TimerResumed(),
-                      ),
+                  child: const Icon(Icons.play_arrow),
+                  onPressed: () =>
+                      context.read<TimerBloc>().add(const TimerResumed()),
                 ),
 
                 const SizedBox(width: 25),
 
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.blue,
                   child: const Icon(Icons.save),
                   onPressed: onSave,
@@ -434,28 +370,20 @@ class Actions extends StatelessWidget {
 
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.red,
                   child: const Icon(Icons.replay),
-                  onPressed: () => context
-                      .read<TimerBloc>()
-                      .add(
-                        const TimerReset(),
-                      ),
+                  onPressed: () =>
+                      context.read<TimerBloc>().add(const TimerReset()),
                 ),
               ],
 
               TimerRunComplete() => [
                 FloatingActionButton(
                   heroTag: null,
-                  elevation: 8,
                   backgroundColor: Colors.blue,
                   child: const Icon(Icons.replay),
-                  onPressed: () => context
-                      .read<TimerBloc>()
-                      .add(
-                        const TimerReset(),
-                      ),
+                  onPressed: () =>
+                      context.read<TimerBloc>().add(const TimerReset()),
                 ),
               ],
             },
@@ -469,10 +397,7 @@ class Actions extends StatelessWidget {
 class Background extends StatelessWidget {
   final bool isDarkMode;
 
-  const Background({
-    Key? key,
-    required this.isDarkMode,
-  }) : super(key: key);
+  const Background({Key? key, required this.isDarkMode}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -481,16 +406,13 @@ class Background extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-         colors: isDarkMode
-    ? [
-        const Color(0xFF0F2027),
-        const Color(0xFF203A43),
-        const Color(0xFF2C5364),
-      ]
-    : [
-        const Color(0xFFF5F7FA),
-        const Color(0xFFC3CFE2),
-      ],
+          colors: isDarkMode
+              ? [
+                  const Color(0xFF0F2027),
+                  const Color(0xFF203A43),
+                  const Color(0xFF2C5364),
+                ]
+              : [const Color(0xFFF5F7FA), const Color(0xFFE2E8F0),],
         ),
       ),
     );
